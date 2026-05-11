@@ -17,8 +17,6 @@ function send() {
 </script>
 
 <template>
-  <NavBar />
-
   <main class="biz-page">
     <!-- Hero -->
     <section class="biz-hero">

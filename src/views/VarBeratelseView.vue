@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import mandyImg from '../assets/images/manys/mandy_m_torta.jpg'
+import mandyImg from "../assets/images/manys/mandy_m_torta.jpg";
 </script>
 
 <template>
@@ -14,33 +14,35 @@ import mandyImg from '../assets/images/manys/mandy_m_torta.jpg'
     <div class="story__body">
       <div class="story__content">
         <p class="story__lead">
-          Välkommen till Mandy's Magic Bakery! Jag är Amanda, och jag älskar att kombinera
-          traditionella tekniker med modern innovation för att skapa visuellt imponerande och
-          läcker konst.
+          Välkommen till Mandy's Magic Bakery! Jag är Amanda, och jag älskar att
+          kombinera traditionella tekniker med modern innovation för att skapa
+          visuellt imponerande och läcker konst.
         </p>
 
         <p>
-          Varje tårta och bakelse jag gör är gjord från grunden med de finaste ingredienserna.
-          Jag arbetar nära med dig för att fånga essensen av din speciella tillställning i
-          varje detalj. Min passion ligger i detaljerna. Jag erbjuder allt från klassiska och
-          eleganta designer till lekfulla och avantgardistiska skapelser.
+          Varje tårta och bakelse jag gör är gjord från grunden med de finaste
+          ingredienserna. Jag arbetar nära med dig för att fånga essensen av din
+          speciella tillställning i varje detalj. Min passion ligger i
+          detaljerna. Jag erbjuder allt från klassiska och eleganta designer
+          till lekfulla och avantgardistiska skapelser.
         </p>
 
         <p>
-          Har du en dröm om en tårta till din examen? Inga problem. Mitt mål är att överträffa
-          dina förväntningar och lämna ett bestående intryck hos både dig och dina gäster.
+          Har du en dröm om en tårta till din examen? Inga problem. Mitt mål är
+          att överträffa dina förväntningar och lämna ett bestående intryck hos
+          både dig och dina gäster.
         </p>
 
         <p>
-          Jag är stolt över min förmåga att lyssna, anpassa och förverkliga dina mest kreativa
-          idéer.
+          Jag är stolt över min förmåga att lyssna, anpassa och förverkliga dina
+          mest kreativa idéer.
         </p>
 
         <p>
-          Kontakta mig på Mandy's Magic Bakery och låt mig vara en del av din nästa stora
-          händelse. Ditt firande förtjänar en tårta som inte bara är delikat och delikatess,
-          utan en verklig konstform. Jag ser fram emot att skapa något extraordinärt
-          tillsammans med dig!
+          Kontakta mig på Mandy's Magic Bakery och låt mig vara en del av din
+          nästa stora händelse. Ditt firande förtjänar en tårta som inte bara är
+          delikat och delikatess, utan en verklig konstform. Jag ser fram emot
+          att skapa något extraordinärt tillsammans med dig!
         </p>
 
         <p class="story__signature">
@@ -74,7 +76,11 @@ import mandyImg from '../assets/images/manys/mandy_m_torta.jpg'
 .story__hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(26, 26, 46, 0.2) 0%, rgba(26, 26, 46, 0.65) 100%);
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 26, 46, 0.2) 0%,
+    rgba(26, 26, 46, 0.65) 100%
+  );
   display: flex;
   align-items: flex-end;
   padding: 48px 56px;

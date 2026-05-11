@@ -1,52 +1,61 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 
 interface Post {
-  id: string
-  mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'
-  mediaUrl: string
-  thumbnailUrl?: string
-  permalink: string
-  caption?: string
-  timestamp: string
+  id: string;
+  mediaType: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
+  mediaUrl: string;
+  thumbnailUrl?: string;
+  permalink: string;
+  caption?: string;
+  timestamp: string;
 }
 
-const FEED_ID = import.meta.env.VITE_BEHOLD_FEED_ID as string | undefined
+const FEED_ID = import.meta.env.VITE_BEHOLD_FEED_ID as string | undefined;
 
-const posts = ref<Post[]>([])
-const loading = ref(true)
-const error = ref<string | null>(null)
+const posts = ref<Post[]>([]);
+const loading = ref(true);
+const error = ref<string | null>(null);
 
 async function fetchFeed() {
   if (!FEED_ID) {
-    error.value = 'no-feed-id'
-    loading.value = false
-    return
+    error.value = "no-feed-id";
+    loading.value = false;
+    return;
   }
   try {
-    const res = await fetch(`https://feeds.behold.so/${FEED_ID}`)
-    if (!res.ok) throw new Error('bad response')
-    posts.value = await res.json()
+    const res = await fetch(`https://feeds.behold.so/${FEED_ID}`);
+    if (!res.ok) throw new Error("bad response");
+    posts.value = await res.json();
   } catch {
-    error.value = 'fetch-error'
+    error.value = "fetch-error";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-onMounted(fetchFeed)
+onMounted(fetchFeed);
 </script>
 
 <template>
   <main class="ig-page">
     <div class="ig-page__header">
       <div class="ig-page__header-left">
-        <svg class="ig-page__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+        <svg
+          class="ig-page__icon"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+          />
         </svg>
         <div>
           <h1 class="ig-page__title">@mandys.magic.bakery</h1>
-          <p class="ig-page__subtitle">Daglig inspiration direkt från vårt kök</p>
+          <p class="ig-page__subtitle">
+            Daglig inspiration direkt från vårt kök
+          </p>
         </div>
       </div>
       <a
@@ -64,10 +73,18 @@ onMounted(fetchFeed)
     </div>
 
     <div v-else-if="error === 'no-feed-id'" class="ig-page__notice">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
       <h2>Flödet är inte konfigurerat ännu</h2>
       <p>
@@ -87,10 +104,18 @@ onMounted(fetchFeed)
     </div>
 
     <div v-else-if="error" class="ig-page__notice ig-page__notice--error">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
       <h2>Kunde inte ladda Instagram-flödet</h2>
       <p>Försök igen om en stund eller besök oss direkt på Instagram.</p>
@@ -121,15 +146,30 @@ onMounted(fetchFeed)
             loading="lazy"
           />
           <div class="ig-card__overlay">
-            <svg v-if="post.mediaType === 'VIDEO'" class="ig-card__type-icon" viewBox="0 0 24 24" fill="currentColor" aria-label="Video">
-              <polygon points="5 3 19 12 5 21 5 3"/>
+            <svg
+              v-if="post.mediaType === 'VIDEO'"
+              class="ig-card__type-icon"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-label="Video"
+            >
+              <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
-            <svg v-else-if="post.mediaType === 'CAROUSEL_ALBUM'" class="ig-card__type-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Karusell">
-              <rect x="2" y="7" width="15" height="15" rx="2"/>
-              <path d="M17 5h2a2 2 0 012 2v12"/>
+            <svg
+              v-else-if="post.mediaType === 'CAROUSEL_ALBUM'"
+              class="ig-card__type-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-label="Karusell"
+            >
+              <rect x="2" y="7" width="15" height="15" rx="2" />
+              <path d="M17 5h2a2 2 0 012 2v12" />
             </svg>
             <p v-if="post.caption" class="ig-card__caption">
-              {{ post.caption.slice(0, 120) }}{{ post.caption.length > 120 ? '…' : '' }}
+              {{ post.caption.slice(0, 120)
+              }}{{ post.caption.length > 120 ? "…" : "" }}
             </p>
           </div>
         </a>
@@ -203,7 +243,9 @@ onMounted(fetchFeed)
   transition: opacity 0.2s;
   white-space: nowrap;
 }
-.ig-page__follow-btn:hover { opacity: 0.85; }
+.ig-page__follow-btn:hover {
+  opacity: 0.85;
+}
 
 .ig-grid {
   display: grid;
@@ -274,8 +316,12 @@ onMounted(fetchFeed)
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .ig-page__notice {
@@ -289,12 +335,30 @@ onMounted(fetchFeed)
   border-radius: 16px;
   color: var(--dark);
 }
-.ig-page__notice svg { color: var(--pink); }
-.ig-page__notice h2 { font-family: var(--font-display); font-size: 1.4rem; }
-.ig-page__notice p { color: var(--gray); max-width: 480px; line-height: 1.7; }
-.ig-page__notice code { background: #fce8f4; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
-.ig-page__notice--error { border-color: #f5c0c0; }
-.ig-page__notice--error svg { color: #e05050; }
+.ig-page__notice svg {
+  color: var(--pink);
+}
+.ig-page__notice h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+.ig-page__notice p {
+  color: var(--gray);
+  max-width: 480px;
+  line-height: 1.7;
+}
+.ig-page__notice code {
+  background: #fce8f4;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.ig-page__notice--error {
+  border-color: #f5c0c0;
+}
+.ig-page__notice--error svg {
+  color: #e05050;
+}
 
 .ig-page__code {
   background: #1a1a2e;
@@ -329,14 +393,29 @@ onMounted(fetchFeed)
 }
 
 @media (max-width: 768px) {
-  .ig-page { padding: 40px 16px 60px; }
-  .ig-page__title { font-size: 1.2rem; }
-  .ig-page__icon { width: 36px; height: 36px; }
-  .ig-grid { grid-template-columns: repeat(2, 1fr); }
+  .ig-page {
+    padding: 40px 16px 60px;
+  }
+  .ig-page__title {
+    font-size: 1.2rem;
+  }
+  .ig-page__icon {
+    width: 36px;
+    height: 36px;
+  }
+  .ig-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 480px) {
-  .ig-grid { grid-template-columns: repeat(2, 1fr); gap: 2px; }
-  .ig-page__header { flex-direction: column; align-items: flex-start; }
+  .ig-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+  }
+  .ig-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

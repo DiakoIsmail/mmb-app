@@ -114,7 +114,9 @@ function submit() {
       <!-- Text -->
       <div class="order-section">
         <h2 class="section-label">Text på {{ typeLabel.toLowerCase() }}</h2>
-        <p class="section-hint">Valfritt — t.ex. "Grattis Lisa!" eller "5 år"</p>
+        <p class="section-hint">
+          Valfritt — t.ex. "Grattis Lisa!" eller "5 år"
+        </p>
         <div class="input-wrap">
           <input
             v-model="cakeText"
