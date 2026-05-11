@@ -16,6 +16,5 @@ import Newsletter from "../components/Newsletter.vue";
     <BestSales />
     <MeetMandyBanner />
     <BusinessSection />
-    <Newsletter />
   </main>
 </template>
