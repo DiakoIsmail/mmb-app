@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import HeroSection from '../components/HeroSection.vue'
-import EventsSection from '../components/EventsSection.vue'
-import FeaturedSection from '../components/FeaturedSection.vue'
-import BestSales from '../components/BestSales.vue'
-import MeetMandyBanner from '../components/MeetMandyBanner.vue'
-import Newsletter from '../components/Newsletter.vue'
+import HeroSection from "../components/HeroSection.vue";
+import EventsSection from "../components/EventsSection.vue";
+import FeaturedSection from "../components/FeaturedSection.vue";
+import BestSales from "../components/BestSales.vue";
+import MeetMandyBanner from "../components/MeetMandyBanner.vue";
+import BusinessSection from "../components/BusinessSection.vue";
+import Newsletter from "../components/Newsletter.vue";
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import Newsletter from '../components/Newsletter.vue'
     <FeaturedSection />
     <BestSales />
     <MeetMandyBanner />
+    <BusinessSection />
     <Newsletter />
   </main>
 </template>
