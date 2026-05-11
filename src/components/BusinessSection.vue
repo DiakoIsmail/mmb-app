@@ -7,8 +7,16 @@ const router = useRouter();
   <section class="biz">
     <div class="biz__inner">
       <div class="biz__icon-wrap">
-        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"
-          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <svg
+          width="48"
+          height="48"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          viewBox="0 0 24 24"
+        >
           <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
@@ -57,7 +65,11 @@ const router = useRouter();
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 80% 50%, rgba(233, 30, 140, 0.15) 0%, transparent 60%);
+  background: radial-gradient(
+    ellipse at 80% 50%,
+    rgba(233, 30, 140, 0.15) 0%,
+    transparent 60%
+  );
   pointer-events: none;
 }
 
@@ -105,7 +117,9 @@ const router = useRouter();
   border-radius: 10px;
   font-size: 0.92rem;
   font-weight: 700;
-  transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
   white-space: nowrap;
 }
 .btn--biz:hover {
