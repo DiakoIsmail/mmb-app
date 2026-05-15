@@ -13,8 +13,8 @@ interface Event {
 
 const events: Event[] = [
   { id: 1, name: "Bakelse", type: "bakelse", image: cupcake },
-  { id: 2, name: "Tårta", type: "tarta", image: cake_cake },
-  { id: 3, name: "Magi", type: "magi", image: magic_cake },
+  // { id: 2, name: "Tårta", type: "tarta", image: cake_cake },
+  // { id: 3, name: "Magi", type: "magi", image: magic_cake },
 ];
 
 const router = useRouter();
@@ -23,7 +23,7 @@ const router = useRouter();
 <template>
   <section class="events">
     <h2 class="section-title">Skapa &amp; Beställ</h2>
-    <div class="events__grid">
+    <div class="events__grid" :class="`events__grid--${events.length}`">
       <div
         v-for="ev in events"
         :key="ev.id"
@@ -52,10 +52,23 @@ const router = useRouter();
 
 .events__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   max-width: 900px;
   margin: 0 auto;
+  justify-content: center;
+}
+
+.events__grid--1 {
+  grid-template-columns: minmax(0, 280px);
+}
+
+.events__grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 620px;
+}
+
+.events__grid--3 {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .events__card {
