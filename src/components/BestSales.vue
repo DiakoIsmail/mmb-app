@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { supabase } from "../lib/supabase";
+import { useCart } from "../composables/useCart";
+
+const { addToCart } = useCart();
 
 interface Product {
   id: string;
@@ -60,7 +63,11 @@ function increment(p: Product) {
         <div class="sales__img-wrap">
           <img :src="p.image_url" :alt="p.name" class="sales__img" />
           <div class="sales__overlay">
-            <button class="sales__icon-btn" title="Lägg i varukorg">
+            <button
+              class="sales__icon-btn"
+              title="Lägg i varukorg"
+              @click="addToCart({ id: p.id, name: p.name, price: p.price, image_url: p.image_url })"
+            >
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
                 <line x1="3" y1="6" x2="21" y2="6" />

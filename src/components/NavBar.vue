@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useCart } from "../composables/useCart";
 
 const menuOpen = ref(false);
 const navLinks = ["Cupcakes", "Events", "About", "Contact Us"];
+
+const { cartCount, openCart } = useCart();
 </script>
 
 <template>
@@ -42,7 +45,7 @@ const navLinks = ["Cupcakes", "Events", "About", "Contact Us"];
       </nav>
 
       <div class="navbar__actions">
-        <button class="navbar__icon-btn" aria-label="Cart">
+        <button class="navbar__icon-btn navbar__cart-btn" aria-label="Varukorg" @click="openCart">
           <svg
             width="22"
             height="22"
@@ -55,6 +58,7 @@ const navLinks = ["Cupcakes", "Events", "About", "Contact Us"];
             <line x1="3" y1="6" x2="21" y2="6" />
             <path d="M16 10a4 4 0 01-8 0" />
           </svg>
+          <span v-if="cartCount > 0" class="navbar__cart-badge">{{ cartCount }}</span>
         </button>
         <RouterLink to="/admin/login" class="navbar__icon-btn" aria-label="Admin">
           <svg
@@ -152,6 +156,29 @@ const navLinks = ["Cupcakes", "Events", "About", "Contact Us"];
 }
 .navbar__icon-btn:hover {
   color: var(--pink);
+}
+
+.navbar__cart-btn {
+  position: relative;
+}
+
+.navbar__cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: var(--pink);
+  color: var(--white);
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .navbar__hamburger {
