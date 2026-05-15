@@ -56,7 +56,7 @@ const navLinks = ["Cupcakes", "Events", "About", "Contact Us"];
             <path d="M16 10a4 4 0 01-8 0" />
           </svg>
         </button>
-        <button class="navbar__icon-btn" aria-label="Account">
+        <RouterLink to="/admin/login" class="navbar__icon-btn" aria-label="Admin">
           <svg
             width="22"
             height="22"
@@ -68,7 +68,7 @@ const navLinks = ["Cupcakes", "Events", "About", "Contact Us"];
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-        </button>
+        </RouterLink>
         <button
           class="navbar__hamburger"
           :class="{ 'navbar__hamburger--open': menuOpen }"

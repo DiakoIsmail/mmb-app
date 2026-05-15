@@ -1,13 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import FooterSection from './components/FooterSection.vue'
+import { initAuth } from './composables/useAuth'
+
+initAuth().catch(() => {})
+
+const route = useRoute()
+const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 </script>
 
 <template>
-  <div class="app">
-    <NavBar />
-    <RouterView />
-    <FooterSection />
+  <div :class="['app', { 'app--admin': isAdminRoute }]">
+    <template v-if="!isAdminRoute">
+      <NavBar />
+      <RouterView />
+      <FooterSection />
+    </template>
+    <template v-else>
+      <RouterView />
+    </template>
   </div>
 </template>
 
@@ -36,6 +49,11 @@ body {
   max-width: 1280px;
   margin: 0 auto;
   overflow-x: hidden;
+}
+
+.app--admin {
+  max-width: 100%;
+  margin: 0;
 }
 
 img { max-width: 100%; height: auto; display: block; }
