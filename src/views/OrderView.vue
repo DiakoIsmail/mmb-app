@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useCart } from "../composables/useCart";
 
 const route = useRoute();
 const router = useRouter();
+const { addToCart } = useCart();
 
 const typeParam = computed(() => route.params.type as string);
 
@@ -50,8 +52,24 @@ const cakeText = ref("");
 const selectedOccasion = ref("");
 const selectedMotif = ref("");
 const customMotif = ref("");
+const quantity = ref(1);
+const inspirationFile = ref<File | null>(null);
+const inspirationPreview = ref<string | null>(null);
 
 const isCustomMotif = computed(() => selectedMotif.value === "eget");
+
+function handleImageUpload(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  inspirationFile.value = file;
+  inspirationPreview.value = URL.createObjectURL(file);
+}
+
+function removeImage() {
+  if (inspirationPreview.value) URL.revokeObjectURL(inspirationPreview.value);
+  inspirationFile.value = null;
+  inspirationPreview.value = null;
+}
 
 function toggleFlavor(id: string) {
   const idx = selectedFlavors.value.indexOf(id);
@@ -69,15 +87,23 @@ function selectMotif(id: string) {
 }
 
 function submit() {
-  const order = {
-    type: typeLabel.value,
-    flavors: selectedFlavors.value,
-    text: cakeText.value,
-    occasion: selectedOccasion.value,
-    motif: isCustomMotif.value ? customMotif.value : selectedMotif.value,
-  };
-  console.log("Beställning:", order);
-  // TODO: skicka till backend
+  addToCart({
+    id: `custom-${Date.now()}`,
+    name: `Anpassad ${typeLabel.value}`,
+    price: 0,
+    image_url: inspirationPreview.value ?? "",
+    qty: quantity.value,
+    isCustom: true,
+    customDetails: {
+      type: typeLabel.value,
+      flavors: selectedFlavors.value,
+      text: cakeText.value,
+      occasion: selectedOccasion.value,
+      motif: isCustomMotif.value ? customMotif.value : selectedMotif.value,
+    },
+    inspirationImageFile: inspirationFile.value ?? undefined,
+  });
+  router.push("/");
 }
 </script>
 
@@ -93,6 +119,17 @@ function submit() {
     </div>
 
     <div class="order-content">
+      <!-- Antal -->
+      <div class="order-section">
+        <h2 class="section-label">Antal</h2>
+        <p class="section-hint">Hur många {{ typeLabel.toLowerCase() }}ar vill du beställa?</p>
+        <div class="qty-control">
+          <button class="qty-control__btn" :disabled="quantity <= 1" @click="quantity--">−</button>
+          <span class="qty-control__num">{{ quantity }}</span>
+          <button class="qty-control__btn" @click="quantity++">+</button>
+        </div>
+      </div>
+
       <!-- Smaker -->
       <div class="order-section">
         <h2 class="section-label">Smaker</h2>
@@ -170,6 +207,37 @@ function submit() {
           rows="3"
           maxlength="300"
         />
+      </div>
+
+      <!-- Inspirationsbild -->
+      <div class="order-section">
+        <h2 class="section-label">Inspirationsbild</h2>
+        <p class="section-hint">Valfritt — ladda upp en bild som inspiration för designen</p>
+
+        <div v-if="!inspirationPreview" class="upload-zone" @click="($refs.fileInput as HTMLInputElement).click()">
+          <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="upload-zone__icon">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="upload-zone__text">Klicka för att ladda upp</p>
+          <p class="upload-zone__hint">JPG, PNG, WEBP — max 10 MB</p>
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="upload-hidden"
+            @change="handleImageUpload"
+          />
+        </div>
+
+        <div v-else class="upload-preview">
+          <img :src="inspirationPreview" alt="Inspirationsbild" class="upload-preview__img" />
+          <div class="upload-preview__info">
+            <p class="upload-preview__name">{{ inspirationFile?.name }}</p>
+            <button class="upload-preview__remove" @click="removeImage">Ta bort</button>
+          </div>
+        </div>
       </div>
 
       <button class="submit-btn" @click="submit">Skicka beställning ✨</button>
@@ -350,6 +418,131 @@ function submit() {
 }
 .motif-textarea::placeholder {
   color: #bdbdbd;
+}
+
+/* Antal stepper */
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #f9f0f5;
+  border-radius: 100px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.qty-control__btn {
+  background: none;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+.qty-control__btn:hover:not(:disabled) {
+  background: var(--pink);
+  color: var(--white);
+}
+.qty-control__btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.qty-control__num {
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 44px;
+  text-align: center;
+  color: var(--dark);
+}
+
+/* Upload */
+.upload-zone {
+  border: 2px dashed var(--pink-light);
+  border-radius: 16px;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.upload-zone:hover {
+  border-color: var(--pink);
+  background: var(--pink-bg);
+}
+
+.upload-zone__icon {
+  color: var(--pink);
+  opacity: 0.7;
+}
+
+.upload-zone__text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.upload-zone__hint {
+  font-size: 0.78rem;
+  color: var(--gray);
+}
+
+.upload-hidden {
+  display: none;
+}
+
+.upload-preview {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid var(--pink-light);
+  border-radius: 16px;
+  background: var(--pink-bg);
+}
+
+.upload-preview__img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.upload-preview__info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.upload-preview__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-preview__remove {
+  background: none;
+  color: var(--pink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0;
+  text-align: left;
+  transition: opacity 0.2s;
+}
+.upload-preview__remove:hover {
+  opacity: 0.7;
 }
 
 /* Submit */

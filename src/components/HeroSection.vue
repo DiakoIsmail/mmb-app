@@ -1,6 +1,24 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useOrderSettings } from "../composables/useOrderSettings";
+const { acceptingOrders } = useOrderSettings();
+</script>
 
 <template>
+  <Transition name="pause-banner">
+    <div v-if="!acceptingOrders" class="pause-banner">
+      <div class="pause-banner__inner">
+        <span class="pause-banner__emoji">🧁</span>
+        <div class="pause-banner__text">
+          <strong class="pause-banner__title">Ugnen är för tillfället full!</strong>
+          <p class="pause-banner__body">
+            Vi pausar tillfälligt nya beställningar för att ge varje order den omsorg den förtjänar.
+            Vi öppnar snart igen — tack för ditt tålamod!
+          </p>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
   <section class="hero">
     <div class="hero__content">
       <p class="hero__suggestion">Vi förverkligar din drömtårta och bakelser</p>
@@ -13,49 +31,7 @@
       </p>
       <div class="hero__cta">
         <button class="btn btn--dark">Våra kreationer</button>
-        <a href="" class="hero__phone">
-          <svg
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            viewBox="0 0 24 24"
-          >
-            <!-- cake layers -->
-            <rect x="2" y="14" width="20" height="7" rx="1" />
-            <rect x="5" y="9" width="14" height="5" rx="1" />
-            <!-- candles -->
-            <line x1="8" y1="9" x2="8" y2="6" />
-            <line x1="12" y1="9" x2="12" y2="5" />
-            <line x1="16" y1="9" x2="16" y2="6" />
-            <!-- flames -->
-            <circle cx="8" cy="5.5" r="0.8" fill="currentColor" stroke="none" />
-            <circle
-              cx="12"
-              cy="4.5"
-              r="0.8"
-              fill="currentColor"
-              stroke="none"
-            />
-            <circle
-              cx="16"
-              cy="5.5"
-              r="0.8"
-              fill="currentColor"
-              stroke="none"
-            />
-          </svg>
-          <span class="hero__stat-number">500+</span>
-          <span class="hero__stat-label">utförda beställningar</span>
-        </a>
       </div>
-      <p class="hero__title--sm">
-        <span class="hero__scroll--dark">Just nu tar vi</span>
-        <span class="hero__scroll--pink"> 3 beställning</span>
-      </p>
     </div>
     <div class="hero__image-wrap">
       <div class="hero__blob"></div>
@@ -223,5 +199,55 @@
   .hero__image {
     max-width: 300px;
   }
+}
+
+/* --- Pause banner --- */
+.pause-banner {
+  background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+  border-bottom: 2px solid #fbbf24;
+  padding: 20px 24px;
+}
+
+.pause-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.pause-banner__emoji {
+  font-size: 2.6rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.pause-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pause-banner__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #92400e;
+  display: block;
+}
+
+.pause-banner__body {
+  font-size: 0.9rem;
+  color: #b45309;
+  line-height: 1.6;
+}
+
+.pause-banner-enter-active,
+.pause-banner-leave-active {
+  transition: all 0.4s ease;
+}
+.pause-banner-enter-from,
+.pause-banner-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
 }
 </style>

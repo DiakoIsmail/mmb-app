@@ -1,10 +1,40 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth, signOut } from '../../composables/useAuth'
+import { useOrderSettings, toggleAcceptingOrders } from '../../composables/useOrderSettings'
+import { supabase } from '../../lib/supabase'
 
 const router = useRouter()
 const route = useRoute()
 const { user } = useAuth()
+const { acceptingOrders } = useOrderSettings()
+
+const pendingCount = ref<number | null>(null)
+const completedToday = ref<number | null>(null)
+const totalOrders = ref<number | null>(null)
+const togglingOrders = ref(false)
+
+onMounted(async () => {
+  const { data } = await supabase
+    .from('orders')
+    .select('status, created_at')
+
+  if (data) {
+    totalOrders.value = data.length
+    pendingCount.value = data.filter(o => o.status === 'pending').length
+    const today = new Date().toISOString().split('T')[0]
+    completedToday.value = data.filter(
+      o => o.status === 'completed' && o.created_at.startsWith(today)
+    ).length
+  }
+})
+
+async function handleToggleOrders() {
+  togglingOrders.value = true
+  await toggleAcceptingOrders(!acceptingOrders.value)
+  togglingOrders.value = false
+}
 
 async function handleSignOut() {
   await signOut()
@@ -43,21 +73,18 @@ async function handleSignOut() {
           </svg>
           Produkter
         </RouterLink>
-        <a class="sidebar-link" href="#">
+        <RouterLink
+          to="/admin/orders"
+          class="sidebar-link"
+          :class="{ 'sidebar-link--active': route.path === '/admin/orders' }"
+        >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
             <rect x="9" y="3" width="6" height="4" rx="2"/>
           </svg>
           Beställningar
-        </a>
-        <a class="sidebar-link" href="#">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-          </svg>
-          Kunder
-        </a>
+          <span v-if="pendingCount" class="sidebar-badge">{{ pendingCount }}</span>
+        </RouterLink>
       </nav>
 
       <button class="sidebar-signout" @click="handleSignOut">
@@ -82,20 +109,60 @@ async function handleSignOut() {
       <div class="admin-content">
         <div class="stats-grid">
           <div class="stat-card">
-            <p class="stat-label">Nya beställningar</p>
-            <p class="stat-value">—</p>
-            <p class="stat-sub">Kommer snart</p>
+            <p class="stat-label">Väntande beställningar</p>
+            <p class="stat-value">{{ pendingCount ?? '…' }}</p>
+            <RouterLink to="/admin/orders" class="stat-sub stat-link">Visa alla →</RouterLink>
           </div>
           <div class="stat-card">
-            <p class="stat-label">Aktiva kunder</p>
-            <p class="stat-value">—</p>
-            <p class="stat-sub">Kommer snart</p>
+            <p class="stat-label">Klara idag</p>
+            <p class="stat-value">{{ completedToday ?? '…' }}</p>
+            <p class="stat-sub">Avklarade beställningar</p>
           </div>
           <div class="stat-card">
-            <p class="stat-label">Veckans försäljning</p>
-            <p class="stat-value">—</p>
-            <p class="stat-sub">Kommer snart</p>
+            <p class="stat-label">Totalt beställningar</p>
+            <p class="stat-value">{{ totalOrders ?? '…' }}</p>
+            <p class="stat-sub">Sedan start</p>
           </div>
+        </div>
+
+        <!-- Order toggle -->
+        <div class="order-toggle-card" :class="acceptingOrders ? 'order-toggle-card--open' : 'order-toggle-card--paused'">
+          <div class="order-toggle-card__left">
+            <div class="order-toggle-icon">
+              <svg v-if="acceptingOrders" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="2"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+              <svg v-else width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+              </svg>
+            </div>
+            <div>
+              <p class="order-toggle-card__title">
+                {{ acceptingOrders ? 'Tar emot beställningar' : 'Beställningar pausade' }}
+              </p>
+              <p class="order-toggle-card__desc">
+                {{ acceptingOrders
+                  ? 'Kunder kan just nu skicka beställningar via hemsidan.'
+                  : 'Kunder kan inte skicka beställningar — ett meddelande visas på hemsidan.' }}
+              </p>
+            </div>
+          </div>
+          <button
+            class="order-toggle-btn"
+            :class="acceptingOrders ? 'order-toggle-btn--stop' : 'order-toggle-btn--start'"
+            :disabled="togglingOrders"
+            @click="handleToggleOrders"
+          >
+            <svg v-if="acceptingOrders" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+            </svg>
+            <svg v-else width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            {{ togglingOrders ? '…' : (acceptingOrders ? 'Pausa beställningar' : 'Starta beställningar') }}
+          </button>
         </div>
 
         <div class="admin-welcome">
@@ -258,6 +325,9 @@ async function handleSignOut() {
 
 .stat-value { font-size: 2rem; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
 .stat-sub { font-size: 0.8rem; color: var(--gray); }
+.stat-link { color: var(--pink); font-weight: 600; transition: opacity 0.2s; }
+.stat-link:hover { opacity: 0.7; }
+.sidebar-badge { margin-left: auto; background: var(--pink); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
 
 .admin-welcome {
   background: var(--white);
@@ -293,6 +363,45 @@ async function handleSignOut() {
 }
 
 .admin-visit-btn:hover { background: #c9186e; }
+
+/* --- Order toggle card --- */
+.order-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  border-radius: 14px;
+  border: 2px solid;
+  transition: background 0.3s, border-color 0.3s;
+}
+.order-toggle-card--open { background: #f0fdf4; border-color: #86efac; }
+.order-toggle-card--paused { background: #fff7ed; border-color: #fdba74; }
+
+.order-toggle-card__left { display: flex; align-items: center; gap: 16px; }
+
+.order-toggle-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.order-toggle-card--open .order-toggle-icon { background: #dcfce7; color: #16a34a; }
+.order-toggle-card--paused .order-toggle-icon { background: #fed7aa; color: #c2410c; }
+
+.order-toggle-card__title { font-weight: 700; font-size: 0.95rem; color: var(--dark); margin-bottom: 3px; }
+.order-toggle-card__desc { font-size: 0.82rem; color: var(--gray); }
+
+.order-toggle-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 9px;
+  font-size: 0.88rem; font-weight: 700;
+  transition: opacity 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+.order-toggle-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.order-toggle-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.order-toggle-btn--stop { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
+.order-toggle-btn--start { background: #dcfce7; color: #166534; border: 1.5px solid #86efac; }
 
 @media (max-width: 768px) {
   .admin-sidebar { display: none; }

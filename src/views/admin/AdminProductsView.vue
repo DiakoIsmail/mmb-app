@@ -41,6 +41,8 @@ const imageFile = ref<File | null>(null)
 const imagePreview = ref('')
 const uploadingImage = ref(false)
 const deleteConfirmId = ref<string | null>(null)
+const deletingId = ref<string | null>(null)
+const deleteErrorMsg = ref('')
 
 async function loadProducts() {
   loading.value = true
@@ -157,8 +159,32 @@ async function saveProduct() {
 }
 
 async function deleteProduct(id: string) {
+  deletingId.value = id
+  deleteErrorMsg.value = ''
+
+  const product = products.value.find(p => p.id === id)
+
+  if (product?.image_url) {
+    try {
+      const url = new URL(product.image_url)
+      const parts = url.pathname.split('/product-images/')
+      if (parts.length > 1) {
+        const filePath = decodeURIComponent(parts[1])
+        await supabase.storage.from('product-images').remove([filePath])
+      }
+    } catch {
+      // bild-URL ogiltig, fortsätt ändå
+    }
+  }
+
   const { error } = await supabase.from('products').delete().eq('id', id)
-  if (error) { errorMsg.value = error.message; return }
+  deletingId.value = null
+
+  if (error) {
+    deleteErrorMsg.value = error.message
+    return
+  }
+
   deleteConfirmId.value = null
   await loadProducts()
 }
@@ -180,6 +206,7 @@ async function deleteProduct(id: string) {
     </div>
 
     <p v-if="successMsg" class="toast-success">{{ successMsg }}</p>
+    <p v-if="deleteErrorMsg" class="toast-error">{{ deleteErrorMsg }}</p>
 
     <div v-if="loading" class="products-loading"><div class="spinner" /></div>
 
@@ -228,8 +255,15 @@ async function deleteProduct(id: string) {
               <button v-if="deleteConfirmId !== p.id" class="btn-delete" @click="deleteConfirmId = p.id">Ta bort</button>
               <span v-else class="delete-confirm">
                 Säker?
-                <button class="btn-delete-confirm" @click="deleteProduct(p.id)">Ja</button>
-                <button class="btn-cancel-sm" @click="deleteConfirmId = null">Nej</button>
+                <button
+                  class="btn-delete-confirm"
+                  :disabled="deletingId === p.id"
+                  @click="deleteProduct(p.id)"
+                >
+                  <span v-if="deletingId === p.id" class="btn-spinner" />
+                  <span v-else>Ja</span>
+                </button>
+                <button class="btn-cancel-sm" :disabled="deletingId === p.id" @click="deleteConfirmId = null">Nej</button>
               </span>
             </td>
           </tr>
@@ -430,6 +464,15 @@ async function deleteProduct(id: string) {
   font-weight: 500;
 }
 
+.toast-error {
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .products-table-wrap {
   background: var(--white);
   border-radius: 14px;
@@ -536,6 +579,12 @@ async function deleteProduct(id: string) {
 .btn-delete-confirm {
   padding: 4px 10px; background: #dc2626; color: white;
   border-radius: 6px; font-size: 0.78rem; font-weight: 600; border: none;
+  display: inline-flex; align-items: center; justify-content: center; min-width: 32px;
+}
+.btn-delete-confirm:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-delete-confirm .btn-spinner {
+  border-color: rgba(255,255,255,0.4);
+  border-top-color: white;
 }
 
 .btn-cancel-sm {

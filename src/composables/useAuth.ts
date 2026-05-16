@@ -5,14 +5,19 @@ import type { User } from '@supabase/supabase-js'
 const user = ref<User | null>(null)
 export const isAdmin = ref(false)
 
+const roleCache = new Map<string, boolean>()
+
 export async function checkAdminRole(userId: string): Promise<boolean> {
+  if (roleCache.has(userId)) return roleCache.get(userId)!
   try {
     const { data } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single()
-    return data?.role === 'admin'
+    const result = data?.role === 'admin'
+    roleCache.set(userId, result)
+    return result
   } catch {
     return false
   }
@@ -51,6 +56,7 @@ export async function signOut() {
   await supabase.auth.signOut()
   user.value = null
   isAdmin.value = false
+  roleCache.clear()
 }
 
 export function useAuth() {

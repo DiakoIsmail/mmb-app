@@ -5,8 +5,10 @@ import NavBar from './components/NavBar.vue'
 import FooterSection from './components/FooterSection.vue'
 import ShoppingCart from './components/ShoppingCart.vue'
 import { initAuth } from './composables/useAuth'
+import { initOrderSettings } from './composables/useOrderSettings'
 
 initAuth().catch(() => {})
+initOrderSettings().catch(() => {})
 
 const route = useRoute()
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))

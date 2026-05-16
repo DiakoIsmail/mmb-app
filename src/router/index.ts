@@ -7,6 +7,7 @@ import BusinessView from "../views/BusinessView.vue";
 import AdminLoginView from "../views/admin/AdminLoginView.vue";
 import AdminDashboardView from "../views/admin/AdminDashboardView.vue";
 import AdminProductsView from "../views/admin/AdminProductsView.vue";
+import AdminOrdersView from "../views/admin/AdminOrdersView.vue";
 import { supabase } from "../lib/supabase";
 import { checkAdminRole, isAdmin } from "../composables/useAuth";
 
@@ -33,6 +34,11 @@ const router = createRouter({
     {
       path: "/admin/products",
       component: AdminProductsView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: "/admin/orders",
+      component: AdminOrdersView,
       meta: { requiresAdmin: true },
     },
   ],

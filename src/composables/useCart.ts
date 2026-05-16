@@ -1,11 +1,22 @@
 import { reactive, computed } from "vue";
 
+export interface CustomOrderDetails {
+  type: string;
+  flavors: string[];
+  text: string;
+  occasion: string;
+  motif: string;
+}
+
 export interface CartItem {
   id: string;
   name: string;
   price: number;
   image_url: string;
   qty: number;
+  isCustom?: boolean;
+  customDetails?: CustomOrderDetails;
+  inspirationImageFile?: File;
 }
 
 const state = reactive({
@@ -20,15 +31,17 @@ export function useCart() {
   );
 
   const cartTotal = computed(() =>
-    state.items.reduce((sum, i) => sum + i.price * i.qty, 0)
+    state.items.reduce((sum, i) => (i.isCustom ? sum : sum + i.price * i.qty), 0)
   );
 
-  function addToCart(product: Omit<CartItem, "qty">) {
+  const hasCustomItems = computed(() => state.items.some((i) => i.isCustom));
+
+  function addToCart(product: Omit<CartItem, "qty"> & { qty?: number }) {
     const existing = state.items.find((i) => i.id === product.id);
-    if (existing) {
-      existing.qty++;
+    if (existing && !product.isCustom) {
+      existing.qty += product.qty ?? 1;
     } else {
-      state.items.push({ ...product, qty: 1 });
+      state.items.push({ ...product, qty: product.qty ?? 1 });
     }
     state.open = true;
     state.checkoutStep = false;
@@ -74,6 +87,7 @@ export function useCart() {
     isCheckoutStep: computed(() => state.checkoutStep),
     cartCount,
     cartTotal,
+    hasCustomItems,
     addToCart,
     removeFromCart,
     setQty,

@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useCart } from "../composables/useCart";
+import { useOrderSettings } from "../composables/useOrderSettings";
 import { supabase } from "../lib/supabase";
+
+const { acceptingOrders } = useOrderSettings();
 
 const {
   items,
   isOpen,
   isCheckoutStep,
   cartTotal,
+  hasCustomItems,
   removeFromCart,
   setQty,
   clearCart,
@@ -35,25 +39,63 @@ const formValid = computed(
   () => name.value.trim() && email.value.trim() && phone.value.trim() && pickupDate.value
 );
 
+async function uploadImage(file: File): Promise<string | null> {
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { data, error } = await supabase.storage
+    .from("order-images")
+    .upload(path, file, { contentType: file.type });
+  if (error || !data) return null;
+  const { data: { publicUrl } } = supabase.storage
+    .from("order-images")
+    .getPublicUrl(data.path);
+  return publicUrl;
+}
+
 async function submitOrder() {
-  if (!formValid.value || submitting.value) return;
+  if (!formValid.value || submitting.value || !acceptingOrders.value) return;
   submitting.value = true;
   submitError.value = "";
 
-  const orderPayload = {
-    customer_name: name.value.trim(),
-    customer_email: email.value.trim(),
-    customer_phone: phone.value.trim(),
-    pickup_date: pickupDate.value,
-    message: message.value.trim() || null,
-    items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
-    total_price: cartTotal.value,
-    status: "pending",
-  };
-
   try {
+    const processedItems = await Promise.all(
+      items.map(async (item) => {
+        let imageUrl = item.image_url;
+        if (item.isCustom && item.inspirationImageFile) {
+          const uploaded = await uploadImage(item.inspirationImageFile);
+          if (uploaded) imageUrl = uploaded;
+        }
+        return {
+          id: item.id,
+          name: item.name,
+          qty: item.qty,
+          price: item.price,
+          isCustom: item.isCustom ?? false,
+          customDetails: item.customDetails ?? null,
+          image_url: imageUrl,
+        };
+      })
+    );
+
+    const orderPayload = {
+      customer_name: name.value.trim(),
+      customer_email: email.value.trim(),
+      customer_phone: phone.value.trim(),
+      pickup_date: pickupDate.value,
+      message: message.value.trim() || null,
+      items: processedItems,
+      total_price: cartTotal.value,
+      status: "pending",
+    };
+
     const { error } = await supabase.from("orders").insert(orderPayload);
     if (error) throw error;
+
+    // Notifiera admin – fire-and-forget, påverkar inte kundflödet
+    supabase.functions.invoke("notify-admin-new-order", {
+      body: orderPayload,
+    }).catch(() => {});
+
     submitted.value = true;
     clearCart();
   } catch {
@@ -107,6 +149,17 @@ function handleClose() {
           <button class="cart-submit-btn" @click="handleClose">Stäng</button>
         </div>
 
+        <!-- Orders paused -->
+        <div v-else-if="isCheckoutStep && !acceptingOrders" class="cart-paused">
+          <div class="cart-paused__icon">🧁</div>
+          <h3 class="cart-paused__title">Ugnen är full just nu!</h3>
+          <p class="cart-paused__text">
+            Vi tar tillfälligt inte emot nya beställningar medan vi fokuserar på
+            att slutföra nuvarande med omsorg. Vi öppnar snart igen — håll utkik!
+          </p>
+          <button class="cart-submit-btn" @click="handleClose">Stäng</button>
+        </div>
+
         <!-- Checkout form -->
         <div v-else-if="isCheckoutStep" class="cart-form">
           <div class="form-field">
@@ -136,9 +189,12 @@ function handleClose() {
           </div>
 
           <div class="cart-order-summary">
-            <span class="cart-summary-label">Totalt</span>
-            <span class="cart-summary-total">{{ cartTotal }} kr</span>
+            <span class="cart-summary-label">{{ hasCustomItems && cartTotal === 0 ? 'Pris vid bekräftelse' : 'Totalt' }}</span>
+            <span class="cart-summary-total">{{ hasCustomItems && cartTotal === 0 ? '–' : `${cartTotal} kr` }}</span>
           </div>
+          <p v-if="hasCustomItems" class="form-note" style="margin-top: -8px;">
+            Anpassade beställningar prissätts av oss efter bekräftelse.
+          </p>
 
           <p v-if="submitError" class="form-error">{{ submitError }}</p>
 
@@ -161,12 +217,42 @@ function handleClose() {
           </div>
 
           <ul v-else class="cart-list">
-            <li v-for="item in items" :key="item.id" class="cart-item">
-              <img :src="item.image_url" :alt="item.name" class="cart-item__img" />
-              <div class="cart-item__info">
-                <p class="cart-item__name">{{ item.name }}</p>
-                <p class="cart-item__price">{{ item.price * item.qty }} kr</p>
-              </div>
+            <li v-for="item in items" :key="item.id" class="cart-item" :class="{ 'cart-item--custom': item.isCustom }">
+              <!-- Custom order -->
+              <template v-if="item.isCustom">
+                <div class="cart-item__custom-img">
+                  <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="cart-item__img" />
+                  <span v-else class="cart-item__custom-emoji">🎂</span>
+                </div>
+                <div class="cart-item__info cart-item__info--custom">
+                  <div class="cart-item__name-row">
+                    <p class="cart-item__name">{{ item.name }}</p>
+                    <span class="cart-item__custom-badge">Anpassad</span>
+                  </div>
+                  <div v-if="item.customDetails" class="cart-item__details">
+                    <span v-if="item.customDetails.flavors.length" class="cart-item__detail-tag">
+                      {{ item.customDetails.flavors.join(', ') }}
+                    </span>
+                    <span v-if="item.customDetails.occasion" class="cart-item__detail-tag">
+                      {{ item.customDetails.occasion }}
+                    </span>
+                    <span v-if="item.customDetails.text" class="cart-item__detail-tag">
+                      "{{ item.customDetails.text }}"
+                    </span>
+                  </div>
+                  <p class="cart-item__price cart-item__price--custom">Pris vid bekräftelse</p>
+                </div>
+              </template>
+
+              <!-- Regular product -->
+              <template v-else>
+                <img :src="item.image_url" :alt="item.name" class="cart-item__img" />
+                <div class="cart-item__info">
+                  <p class="cart-item__name">{{ item.name }}</p>
+                  <p class="cart-item__price">{{ item.price * item.qty }} kr</p>
+                </div>
+              </template>
+
               <div class="cart-item__controls">
                 <button class="qty-btn" @click="setQty(item.id, item.qty - 1)">−</button>
                 <span class="qty-num">{{ item.qty }}</span>
@@ -184,9 +270,12 @@ function handleClose() {
         <!-- Footer (only on cart step with items) -->
         <div v-if="!isCheckoutStep && !submitted && items.length > 0" class="cart-footer">
           <div class="cart-total-row">
-            <span>Totalt</span>
+            <span>Totalt produkter</span>
             <span class="cart-total-price">{{ cartTotal }} kr</span>
           </div>
+          <p v-if="hasCustomItems" class="cart-custom-note">
+            + anpassade beställningar — pris sätts vid bekräftelse
+          </p>
           <button class="cart-submit-btn" @click="goToCheckout">Gå till beställning →</button>
         </div>
       </div>
@@ -363,6 +452,84 @@ function handleClose() {
   font-weight: 600;
   min-width: 18px;
   text-align: center;
+}
+
+.cart-item--custom {
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid #f9f0f5;
+}
+.cart-item--custom:last-child {
+  border-bottom: none;
+}
+
+.cart-item__custom-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: var(--pink-bg);
+  border: 1px solid var(--pink-light);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cart-item__custom-emoji {
+  font-size: 1.6rem;
+}
+
+.cart-item__info--custom {
+  gap: 4px;
+}
+
+.cart-item__name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cart-item__custom-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--pink-bg);
+  color: var(--pink);
+  border: 1px solid var(--pink-light);
+  border-radius: 100px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.cart-item__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.cart-item__detail-tag {
+  font-size: 0.72rem;
+  color: var(--gray);
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.cart-item__price--custom {
+  color: var(--gray) !important;
+  font-weight: 500 !important;
+  font-style: italic;
+  font-size: 0.78rem !important;
+}
+
+.cart-custom-note {
+  font-size: 0.78rem;
+  color: var(--gray);
+  font-style: italic;
+  text-align: center;
+  margin-top: -4px;
 }
 
 .cart-item__remove {
@@ -552,6 +719,32 @@ function handleClose() {
   color: var(--gray);
   font-size: 0.95rem;
   line-height: 1.6;
+}
+
+.cart-paused {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.cart-paused__icon { font-size: 3rem; }
+
+.cart-paused__title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--dark);
+}
+
+.cart-paused__text {
+  color: var(--gray);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  max-width: 280px;
 }
 
 @media (max-width: 480px) {
