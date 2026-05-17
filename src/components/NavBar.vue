@@ -67,6 +67,24 @@ const { cartCount, openCart } = useCart();
           }}</span>
         </button>
 
+        <RouterLink
+          to="/admin/login"
+          class="navbar__icon-btn"
+          aria-label="Admin"
+        >
+          <svg
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </RouterLink>
+
         <button
           class="navbar__hamburger"
           :class="{ 'navbar__hamburger--open': menuOpen }"
