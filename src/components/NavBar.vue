@@ -20,7 +20,7 @@ const { cartCount, openCart } = useCart();
         <span class="navbar__logo-text">Mandy´s</span>
       </RouterLink>
 
-      <nav class="navbar__links" :class="{ 'navbar__links--open': menuOpen }">
+      <!-- <nav class="navbar__links" :class="{ 'navbar__links--open': menuOpen }">
         <a v-for="link in navLinks" :key="link" href="#" class="navbar__link">{{
           link
         }}</a>
@@ -42,10 +42,14 @@ const { cartCount, openCart } = useCart();
           </svg>
           Instagram
         </RouterLink>
-      </nav>
+      </nav> -->
 
       <div class="navbar__actions">
-        <button class="navbar__icon-btn navbar__cart-btn" aria-label="Varukorg" @click="openCart">
+        <button
+          class="navbar__icon-btn navbar__cart-btn"
+          aria-label="Varukorg"
+          @click="openCart"
+        >
           <svg
             width="22"
             height="22"
@@ -58,21 +62,11 @@ const { cartCount, openCart } = useCart();
             <line x1="3" y1="6" x2="21" y2="6" />
             <path d="M16 10a4 4 0 01-8 0" />
           </svg>
-          <span v-if="cartCount > 0" class="navbar__cart-badge">{{ cartCount }}</span>
+          <span v-if="cartCount > 0" class="navbar__cart-badge">{{
+            cartCount
+          }}</span>
         </button>
-        <RouterLink to="/admin/login" class="navbar__icon-btn" aria-label="Admin">
-          <svg
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-          >
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </RouterLink>
+
         <button
           class="navbar__hamburger"
           :class="{ 'navbar__hamburger--open': menuOpen }"

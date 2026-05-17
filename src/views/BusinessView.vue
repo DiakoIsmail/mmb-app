@@ -1,18 +1,42 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import NavBar from "@/components/NavBar.vue";
-import FooterSection from "@/components/FooterSection.vue";
+import { supabase } from "@/lib/supabase";
 
 const form = ref({ company: "", name: "", email: "", phone: "", message: "" });
 const submitted = ref(false);
+const sending = ref(false);
+const error = ref("");
 
-function send() {
+async function send() {
   const { company, name, email } = form.value;
-  if (company.trim() && name.trim() && email.trim()) {
-    submitted.value = true;
-    form.value = { company: "", name: "", email: "", phone: "", message: "" };
-    setTimeout(() => (submitted.value = false), 5000);
+  if (!company.trim() || !name.trim() || !email.trim()) return;
+
+  sending.value = true;
+  error.value = "";
+
+  const { error: fnError } = await supabase.functions.invoke(
+    "send-business-inquiry",
+    {
+      body: {
+        company: form.value.company,
+        name: form.value.name,
+        email: form.value.email,
+        phone: form.value.phone,
+        message: form.value.message,
+      },
+    },
+  );
+
+  sending.value = false;
+
+  if (fnError) {
+    error.value = "Något gick fel. Försök igen eller kontakta oss direkt.";
+    return;
   }
+
+  submitted.value = true;
+  form.value = { company: "", name: "", email: "", phone: "", message: "" };
+  setTimeout(() => (submitted.value = false), 6000);
 }
 </script>
 
@@ -23,7 +47,7 @@ function send() {
       <p class="biz-hero__label">Företag &amp; Grossist</p>
       <h1 class="biz-hero__title">Beställ till din verksamhet</h1>
       <p class="biz-hero__sub">
-        Vi samarbetar med kaféer, butiker, restauranger och event-bolag som vill
+        Vi samarbetar med kaféer, butiker, restauranger och eventbolag som vill
         erbjuda sina kunder handgjorda bakelser av högsta kvalitet.
       </p>
     </section>
@@ -51,7 +75,7 @@ function send() {
           <h3>Grossistleverans</h3>
           <p>
             Regelbunden leverans av färska produkter direkt till din verksamhet
-            — dagligen, veckovis eller efter ditt schema.
+            ,dagligen, veckovis eller efter ditt schema.
           </p>
         </div>
         <div class="biz-offer-card">
@@ -160,7 +184,7 @@ function send() {
                 <a
                   href="mailto:foretag@mandysmagicbakery.se"
                   class="biz-contact-item__value"
-                  >foretag@mandysmagicbakery.se</a
+                  >mandys.magic.bakery@hotmail.com</a
                 >
               </div>
             </li>
@@ -215,7 +239,7 @@ function send() {
           <div class="biz-min-order">
             <p class="biz-min-order__title">Minimibeställning</p>
             <p class="biz-min-order__text">
-              Vi tar emot företagsbeställningar från 50 enheter per order.
+              Vi tar emot företagsbeställningar från 10 enheter per order.
               Kontakta oss för prislistor och volymrabatter.
             </p>
           </div>
@@ -272,12 +296,13 @@ function send() {
                 placeholder="Vilka produkter är du intresserad av, hur ofta vill du beställa, antal enheter..."
               ></textarea>
             </div>
-            <button type="submit" class="btn btn--send">
-              Skicka förfrågan
+            <button type="submit" class="btn btn--send" :disabled="sending">
+              {{ sending ? "Skickar…" : "Skicka förfrågan" }}
             </button>
             <p v-if="submitted" class="biz-form__success">
               Tack! Vi återkommer till dig inom 24 timmar.
             </p>
+            <p v-if="error" class="biz-form__error">{{ error }}</p>
           </form>
         </div>
       </div>
@@ -545,6 +570,17 @@ a.biz-contact-item__value:hover {
   font-weight: 600;
   font-size: 0.88rem;
   animation: fadeIn 0.3s ease;
+}
+.biz-form__error {
+  color: #c0392b;
+  font-weight: 600;
+  font-size: 0.88rem;
+  animation: fadeIn 0.3s ease;
+}
+.btn--send:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
 }
 @keyframes fadeIn {
   from {

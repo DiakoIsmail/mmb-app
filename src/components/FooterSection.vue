@@ -3,22 +3,22 @@ import mandysLogo from "@/assets/logos/mandys-logo.jpeg";
 const socials = [
   {
     label: "Facebook",
-    href: "#",
+    href: "https://www.facebook.com/mandys.magic.bakery/?locale=sv_SE",
     icon: "M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z",
   },
-  {
-    label: "LinkedIn",
-    href: "#",
-    icon: "M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z M4 6a2 2 0 100-4 2 2 0 000 4z",
-  },
+  // {
+  //   label: "LinkedIn",
+  //   href: "#",
+  //   icon: "M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z M4 6a2 2 0 100-4 2 2 0 000 4z",
+  // },
   {
     label: "TikTok",
-    href: "#",
+    href: "https://www.tiktok.com/@mandysmagicbakery",
     icon: "M9 12a4 4 0 104 4V4a5 5 0 005 5",
   },
   {
     label: "Instagram",
-    href: "#",
+    href: "https://www.instagram.com/mandys.magic.bakery/",
     icon: "M16 3H8a5 5 0 00-5 5v8a5 5 0 005 5h8a5 5 0 005-5V8a5 5 0 00-5-5zM12 15a3 3 0 110-6 3 3 0 010 6z",
   },
 ];
@@ -40,7 +40,7 @@ const socials = [
         <h4 class="footer__heading">Get In Touch</h4>
         <p>Låtsas adressen 23, New York</p>
         <p>+46 112 23 54</p>
-        <p>fakeemail@gmail.com</p>
+        <p>mandys.magic.bakery@hotmail.com</p>
       </div>
 
       <div class="footer__col">
@@ -71,10 +71,7 @@ const socials = [
     </div>
 
     <div class="footer__bottom">
-      <div class="footer__links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms &amp; Condition</a>
-      </div>
+      <div class="footer__links"></div>
       <p class="footer__copy">
         &copy; Copyright 2026 | Design by Mandy's Magic Bakery
       </p>

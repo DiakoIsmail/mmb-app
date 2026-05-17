@@ -84,6 +84,23 @@ async function confirmDelete() {
   if (!confirmDeleteIds.value.length) return;
   deleting.value = true;
   const ids = confirmDeleteIds.value;
+
+  const ordersToDelete = orders.value.filter((o) => ids.includes(o.id));
+  const imagePaths: string[] = [];
+  for (const order of ordersToDelete) {
+    for (const item of order.items) {
+      if (item.image_url) {
+        try {
+          const parts = new URL(item.image_url).pathname.split("/order-images/");
+          if (parts.length > 1) imagePaths.push(decodeURIComponent(parts[1]));
+        } catch { /* invalid URL, skip */ }
+      }
+    }
+  }
+  if (imagePaths.length) {
+    await supabase.storage.from("order-images").remove(imagePaths);
+  }
+
   const { error: err } = await supabase.from("orders").delete().in("id", ids);
   if (err) {
     showToast("Kunde inte radera beställningarna.", "error");

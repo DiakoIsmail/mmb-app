@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 import { useOrderSettings } from "../composables/useOrderSettings";
 const { acceptingOrders } = useOrderSettings();
+const router = useRouter();
 </script>
 
 <template>
@@ -9,10 +11,12 @@ const { acceptingOrders } = useOrderSettings();
       <div class="pause-banner__inner">
         <span class="pause-banner__emoji">🧁</span>
         <div class="pause-banner__text">
-          <strong class="pause-banner__title">Ugnen är för tillfället full!</strong>
+          <strong class="pause-banner__title"
+            >Ugnen är för tillfället full!</strong
+          >
           <p class="pause-banner__body">
-            Vi pausar tillfälligt nya beställningar för att ge varje order den omsorg den förtjänar.
-            Vi öppnar snart igen — tack för ditt tålamod!
+            Vi pausar tillfälligt nya beställningar för att ge varje order den
+            omsorg den förtjänar. Vi öppnar snart igen — tack för ditt tålamod!
           </p>
         </div>
       </div>
@@ -30,7 +34,9 @@ const { acceptingOrders } = useOrderSettings();
         weddings. Our cupcakes are baked daily using the finest ingredients.
       </p>
       <div class="hero__cta">
-        <button class="btn btn--dark">Våra kreationer</button>
+        <button class="btn btn--dark" @click="router.push('/instagram')">
+          Våra kreationer
+        </button>
       </div>
     </div>
     <div class="hero__image-wrap">
@@ -219,7 +225,7 @@ const { acceptingOrders } = useOrderSettings();
 .pause-banner__emoji {
   font-size: 2.6rem;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .pause-banner__text {
