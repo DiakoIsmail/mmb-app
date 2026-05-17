@@ -2,13 +2,21 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth, signOut } from '../../composables/useAuth'
-import { useOrderSettings, toggleAcceptingOrders } from '../../composables/useOrderSettings'
+import { useOrderSettings, toggleAcceptingOrders, toggleCategory } from '../../composables/useOrderSettings'
 import { supabase } from '../../lib/supabase'
 
 const router = useRouter()
 const route = useRoute()
 const { user } = useAuth()
-const { acceptingOrders } = useOrderSettings()
+const { acceptingOrders, bakeselEnabled, tartaEnabled, magiEnabled } = useOrderSettings()
+const togglingCategory = ref<string | null>(null)
+
+async function handleToggleCategory(key: 'bakelse_enabled' | 'tarta_enabled' | 'magi_enabled') {
+  togglingCategory.value = key
+  const current = key === 'bakelse_enabled' ? bakeselEnabled.value : key === 'tarta_enabled' ? tartaEnabled.value : magiEnabled.value
+  await toggleCategory(key, !current)
+  togglingCategory.value = null
+}
 
 const pendingCount = ref<number | null>(null)
 const completedToday = ref<number | null>(null)
@@ -163,6 +171,66 @@ async function handleSignOut() {
             </svg>
             {{ togglingOrders ? '…' : (acceptingOrders ? 'Pausa beställningar' : 'Starta beställningar') }}
           </button>
+        </div>
+
+        <!-- Category toggles -->
+        <div class="category-toggles">
+          <h3 class="category-toggles__title">Aktiva kategorier</h3>
+          <div class="category-toggles__grid">
+            <div
+              class="category-card"
+              :class="bakeselEnabled ? 'category-card--on' : 'category-card--off'"
+            >
+              <div class="category-card__info">
+                <span class="category-card__name">Bakelse</span>
+                <span class="category-card__status">{{ bakeselEnabled ? 'Synlig' : 'Dold' }}</span>
+              </div>
+              <button
+                class="category-card__btn"
+                :class="bakeselEnabled ? 'category-card__btn--off' : 'category-card__btn--on'"
+                :disabled="togglingCategory === 'bakelse_enabled'"
+                @click="handleToggleCategory('bakelse_enabled')"
+              >
+                {{ togglingCategory === 'bakelse_enabled' ? '…' : (bakeselEnabled ? 'Dölj' : 'Visa') }}
+              </button>
+            </div>
+
+            <div
+              class="category-card"
+              :class="tartaEnabled ? 'category-card--on' : 'category-card--off'"
+            >
+              <div class="category-card__info">
+                <span class="category-card__name">Tårta</span>
+                <span class="category-card__status">{{ tartaEnabled ? 'Synlig' : 'Dold' }}</span>
+              </div>
+              <button
+                class="category-card__btn"
+                :class="tartaEnabled ? 'category-card__btn--off' : 'category-card__btn--on'"
+                :disabled="togglingCategory === 'tarta_enabled'"
+                @click="handleToggleCategory('tarta_enabled')"
+              >
+                {{ togglingCategory === 'tarta_enabled' ? '…' : (tartaEnabled ? 'Dölj' : 'Visa') }}
+              </button>
+            </div>
+
+            <div
+              class="category-card"
+              :class="magiEnabled ? 'category-card--on' : 'category-card--off'"
+            >
+              <div class="category-card__info">
+                <span class="category-card__name">Magi</span>
+                <span class="category-card__status">{{ magiEnabled ? 'Synlig' : 'Dold' }}</span>
+              </div>
+              <button
+                class="category-card__btn"
+                :class="magiEnabled ? 'category-card__btn--off' : 'category-card__btn--on'"
+                :disabled="togglingCategory === 'magi_enabled'"
+                @click="handleToggleCategory('magi_enabled')"
+              >
+                {{ togglingCategory === 'magi_enabled' ? '…' : (magiEnabled ? 'Dölj' : 'Visa') }}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="admin-welcome">
@@ -403,9 +471,62 @@ async function handleSignOut() {
 .order-toggle-btn--stop { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
 .order-toggle-btn--start { background: #dcfce7; color: #166534; border: 1.5px solid #86efac; }
 
+/* --- Category toggles --- */
+.category-toggles {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.category-toggles__title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray);
+  margin-bottom: 16px;
+}
+
+.category-toggles__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.category-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1.5px solid;
+  transition: background 0.2s, border-color 0.2s;
+}
+.category-card--on  { background: #f0fdf4; border-color: #86efac; }
+.category-card--off { background: #f9fafb; border-color: #e5e7eb; }
+
+.category-card__info { display: flex; flex-direction: column; gap: 2px; }
+.category-card__name { font-weight: 700; font-size: 0.9rem; color: var(--dark); }
+.category-card__status { font-size: 0.75rem; color: var(--gray); }
+.category-card--off .category-card__status { color: #9ca3af; }
+
+.category-card__btn {
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.category-card__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.category-card__btn--off { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
+.category-card__btn--on  { background: #dcfce7; color: #166534; border: 1.5px solid #86efac; }
+
 @media (max-width: 768px) {
   .admin-sidebar { display: none; }
   .stats-grid { grid-template-columns: 1fr; }
   .admin-content { padding: 20px 16px; }
+  .category-toggles__grid { grid-template-columns: 1fr; }
 }
 </style>

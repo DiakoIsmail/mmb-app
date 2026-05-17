@@ -1,21 +1,32 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import cupcake from "../assets/buttonlogo/cupcake_logo.png";
 import cake_cake from "../assets/buttonlogo/tarta_logo.png";
 import magic_cake from "../assets/buttonlogo/magic_tårta.png";
+import { useOrderSettings } from "../composables/useOrderSettings";
 
 interface Event {
   id: number;
   name: string;
   type: string;
   image: string;
+  enabledKey: "bakeselEnabled" | "tartaEnabled" | "magiEnabled";
 }
 
-const events: Event[] = [
-  { id: 1, name: "Bakelse", type: "bakelse", image: cupcake },
-  // { id: 2, name: "Tårta", type: "tarta", image: cake_cake },
-  // { id: 3, name: "Magi", type: "magi", image: magic_cake },
+const { bakeselEnabled, tartaEnabled, magiEnabled } = useOrderSettings();
+
+const allEvents: Event[] = [
+  { id: 1, name: "Bakelse", type: "bakelse", image: cupcake, enabledKey: "bakeselEnabled" },
+  { id: 2, name: "Tårta", type: "tarta", image: cake_cake, enabledKey: "tartaEnabled" },
+  { id: 3, name: "Magi", type: "magi", image: magic_cake, enabledKey: "magiEnabled" },
 ];
+
+const enabledMap = { bakeselEnabled, tartaEnabled, magiEnabled };
+
+const events = computed(() =>
+  allEvents.filter((ev) => enabledMap[ev.enabledKey].value)
+);
 
 const router = useRouter();
 </script>
@@ -23,7 +34,7 @@ const router = useRouter();
 <template>
   <section class="events">
     <h2 class="section-title">Skapa &amp; Beställ</h2>
-    <div class="events__grid" :class="`events__grid--${events.length}`">
+    <div class="events__grid" :class="`events__grid--${events.length}`" v-if="events.length">
       <div
         v-for="ev in events"
         :key="ev.id"
