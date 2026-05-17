@@ -32,6 +32,7 @@ const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  color-scheme: light;
   --pink: #e91e8c;
   --pink-light: #f8bbd9;
   --pink-bg: #fdf0f6;
