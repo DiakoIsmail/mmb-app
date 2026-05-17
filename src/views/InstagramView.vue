@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 
 interface Post {
   id: string;
@@ -9,13 +9,31 @@ interface Post {
   permalink: string;
   caption?: string;
   timestamp: string;
+  sizes?: {
+    medium?: { mediaUrl: string };
+    small?: { mediaUrl: string };
+  };
 }
 
+const PAGE_SIZE = 12;
 const FEED_ID = import.meta.env.VITE_BEHOLD_FEED_ID as string | undefined;
 
 const posts = ref<Post[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const currentPage = ref(1);
+
+const totalPages = computed(() => Math.ceil(posts.value.length / PAGE_SIZE));
+
+const pagedPosts = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE;
+  return posts.value.slice(start, start + PAGE_SIZE);
+});
+
+function goTo(page: number) {
+  currentPage.value = page;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 async function fetchFeed() {
   if (!FEED_ID) {
@@ -26,7 +44,8 @@ async function fetchFeed() {
   try {
     const res = await fetch(`https://feeds.behold.so/${FEED_ID}`);
     if (!res.ok) throw new Error("bad response");
-    posts.value = await res.json();
+    const data = await res.json();
+    posts.value = Array.isArray(data) ? data : (data.posts ?? []);
   } catch {
     error.value = "fetch-error";
   } finally {
@@ -132,7 +151,7 @@ onMounted(fetchFeed);
     <template v-else>
       <div class="ig-grid">
         <a
-          v-for="post in posts"
+          v-for="post in pagedPosts"
           :key="post.id"
           :href="post.permalink"
           target="_blank"
@@ -140,7 +159,7 @@ onMounted(fetchFeed);
           class="ig-card"
         >
           <img
-            :src="post.thumbnailUrl ?? post.mediaUrl"
+            :src="post.sizes?.medium?.mediaUrl ?? post.sizes?.small?.mediaUrl ?? post.thumbnailUrl ?? post.mediaUrl"
             :alt="post.caption ? post.caption.slice(0, 80) : 'Instagram-inlägg'"
             class="ig-card__img"
             loading="lazy"
@@ -173,6 +192,34 @@ onMounted(fetchFeed);
             </p>
           </div>
         </a>
+      </div>
+
+      <div v-if="totalPages > 1" class="ig-pagination">
+        <button
+          class="ig-pagination__btn"
+          :disabled="currentPage === 1"
+          @click="goTo(currentPage - 1)"
+          aria-label="Föregående sida"
+        >
+          ←
+        </button>
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          class="ig-pagination__btn"
+          :class="{ 'ig-pagination__btn--active': page === currentPage }"
+          @click="goTo(page)"
+        >
+          {{ page }}
+        </button>
+        <button
+          class="ig-pagination__btn"
+          :disabled="currentPage === totalPages"
+          @click="goTo(currentPage + 1)"
+          aria-label="Nästa sida"
+        >
+          →
+        </button>
       </div>
 
       <div class="ig-page__cta">
@@ -369,6 +416,42 @@ onMounted(fetchFeed);
   letter-spacing: 0.02em;
   max-width: 100%;
   overflow-x: auto;
+}
+
+.ig-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+.ig-pagination__btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border: 2px solid #f0d0e5;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--dark);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ig-pagination__btn:hover:not(:disabled) {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+.ig-pagination__btn--active {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #fff;
+}
+.ig-pagination__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .ig-page__cta {
